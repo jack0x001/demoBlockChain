@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 )
 
-// State 表示当前状态, 用户余额以及交易列表
+// State 表示状态机的当前状态, 用户余额以及交易列表
 type State struct {
 	Balances  map[Account]uint
 	txMemPool []Tx
