@@ -1,8 +1,8 @@
 {
   "genesis_time": "2022-05-05T00:00:00",
-  "chain_id": "test-chain-zhouyh",
+  "chain_id": "test-chain-ledger",
   "balances": {
-    "zhouyh": {
+    "andrej": {
       "balance": "1000000"
     }
   }
