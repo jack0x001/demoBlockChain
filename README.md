@@ -1,2 +1,2 @@
 # demoBlockChain
-a demo blockchain in golang
+a demo blockchain in golang.
