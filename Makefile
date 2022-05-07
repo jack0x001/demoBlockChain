@@ -6,4 +6,4 @@ cli:
 	go build -o ./bin/demoChainCLI ./cmd/cli/
 
 test:
-	go test -v ./test/
+	go test -v  ./test/

@@ -3,6 +3,7 @@ package database
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,13 +12,32 @@ import (
 // State 表示状态机的当前状态, 用户余额以及交易列表
 type State struct {
 	Balances  map[Account]uint
-	txMemPool []Tx
+	TxMemPool []Tx
 
 	dbFile *os.File
 }
 
+func NewState(dbFilePath string) (*State, error) {
+	s := &State{}
+	s.Balances = make(map[Account]uint)
+	s.TxMemPool = make([]Tx, 0)
+
+	//if dbFilePath is not empty, then open the file
+	if dbFilePath != "" {
+		dbFile, err := os.OpenFile(dbFilePath, os.O_RDWR|os.O_CREATE, 0666)
+		if err != nil {
+			return nil, err
+		}
+		s.dbFile = dbFile
+	} else {
+		s.dbFile = nil
+	}
+
+	return s, nil
+}
+
 // 验证交易, 如果验证通过, 则将使交易生效
-func (s State) apply(tx Tx) error {
+func (s *State) apply(tx Tx) error {
 	if tx.IsReward() {
 		s.Balances[tx.To] += tx.Value
 		return nil
@@ -52,7 +72,7 @@ func NewStateFromDisk() (state *State, err error) {
 	txFilePath := filepath.Join(dbPath, "tx.db")
 	txFile, err := os.OpenFile(txFilePath, os.O_APPEND|os.O_RDWR, 0600)
 	//defer func(txFile *os.File) {
-	//	err := txFile.Close()
+	//	err := txFile.CloseDB()
 	//	if err != nil {
 	//		log.Println(err)
 	//	}
@@ -80,17 +100,17 @@ func NewStateFromDisk() (state *State, err error) {
 	return state, nil
 }
 
-// Add : 添加一条交易到MemPool
-func (s State) Add(tx Tx) error {
+// AddTx : 添加一条交易
+func (s *State) AddTx(tx Tx) error {
 	if err := s.apply(tx); err != nil {
 		return err
 	}
-	s.txMemPool = append(s.txMemPool, tx)
+	s.TxMemPool = append(s.TxMemPool, tx)
 	return nil
 }
 
 // Persist : 持久化状态到磁盘
-func (s State) Persist() error {
+func (s *State) Persist() error {
 
 	//logic:
 	//目的: 将s.txMemPool写到磁盘
@@ -101,7 +121,7 @@ func (s State) Persist() error {
 
 	/*
 
-		          s.txMemPool
+		          s.TxMemPool
 
 		         ┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐  ◀─────adding (append)──────
 		    ─ ─ ▶└─┘└─┘└─┘└─┘└─┘└─┘└─┘└─┘
@@ -120,8 +140,8 @@ func (s State) Persist() error {
 
 	*/
 
-	memoryPool := make([]Tx, len(s.txMemPool))
-	copy(memoryPool, s.txMemPool)
+	memoryPool := make([]Tx, len(s.TxMemPool))
+	copy(memoryPool, s.TxMemPool)
 
 	for i := 0; i < len(memoryPool); i++ {
 		jsonBytes, err := json.Marshal(memoryPool[i])
@@ -130,18 +150,21 @@ func (s State) Persist() error {
 		}
 		jsonBytesWithNewLine := append(jsonBytes, '\n')
 
+		if s.dbFile == nil {
+			return errors.New("dbFile of state is nil")
+		}
 		_, err = s.dbFile.Write(jsonBytesWithNewLine)
 		if err != nil {
 			return err
 		}
 
-		//remove s.txMemPool[0]
-		s.txMemPool = s.txMemPool[1:]
+		//remove s.TxMemPool[0]
+		s.TxMemPool = s.TxMemPool[1:]
 	}
 	return nil
 }
 
-func (s State) Close() {
+func (s *State) CloseDB() {
 	err := s.dbFile.Close()
 	if err != nil {
 		return

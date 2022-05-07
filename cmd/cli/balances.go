@@ -16,7 +16,7 @@ var balancesListCmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer state.Close()
+		defer state.CloseDB()
 
 		for account, balance := range state.Balances {
 			fmt.Printf("%s: %d\n", account, balance)
