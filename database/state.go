@@ -35,13 +35,10 @@ func (s State) apply(tx Tx) error {
 // NewStateFromDisk 从磁盘读取并生成新的状态, 用于恢复状态机
 func NewStateFromDisk() (state *State, err error) {
 
-	cwd, err := os.Getwd()
-	if err != nil {
-		return nil, err
-	}
-
+	// get environment variable of database path
+	dbPath := os.Getenv("DATABASE_PATH")
 	//读取创世文件
-	genesisFilePath := filepath.Join(cwd, "database", "genesis.json")
+	genesisFilePath := filepath.Join(dbPath, "genesis.json")
 	genesis, err := loadGenesis(genesisFilePath)
 	if err != nil {
 		return nil, err
@@ -52,7 +49,7 @@ func NewStateFromDisk() (state *State, err error) {
 	}
 
 	//读取交易记录
-	txFilePath := filepath.Join(cwd, "database", "tx.db")
+	txFilePath := filepath.Join(dbPath, "tx.db")
 	txFile, err := os.OpenFile(txFilePath, os.O_APPEND|os.O_RDWR, 0600)
 	//defer func(txFile *os.File) {
 	//	err := txFile.Close()
@@ -142,4 +139,11 @@ func (s State) Persist() error {
 		s.txMemPool = s.txMemPool[1:]
 	}
 	return nil
+}
+
+func (s State) Close() {
+	err := s.dbFile.Close()
+	if err != nil {
+		return
+	}
 }
