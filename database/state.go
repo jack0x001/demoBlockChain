@@ -44,7 +44,7 @@ func (s *State) apply(tx Tx) error {
 	}
 
 	if s.Balances[tx.From] < tx.Value {
-		return fmt.Errorf("余额不足, 当前余额 %d 小于所需值 %d", s.Balances[tx.From], tx.Value)
+		return fmt.Errorf("%q 余额不足, 当前余额 %d 小于所需值 %d", tx.From, s.Balances[tx.From], tx.Value)
 	}
 
 	s.Balances[tx.From] -= tx.Value
