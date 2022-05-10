@@ -1,10 +1,10 @@
 package test
 
 import (
+	"demoBlockChain/database"
 	"os"
 	"testing"
 )
-import "demoBlockChain/database"
 
 func setEnv() bool {
 	err := os.Setenv("DATABASE_PATH", "./_testdata")
@@ -104,6 +104,7 @@ func TestPersistAndLoad(t *testing.T) {
 	})
 
 	t.Run("load case", func(t *testing.T) {
+		t.Helper()
 		state, err := database.NewStateFromDisk()
 		if err != nil {
 			t.Errorf("NewStateFromDisk() error: %v", err)
@@ -112,9 +113,5 @@ func TestPersistAndLoad(t *testing.T) {
 			t.Errorf("NewStateFromDisk() error: %v", "state.Balances is empty")
 		}
 	})
-
-}
-
-func TestNewStateFromDisk(t *testing.T) {
 
 }
