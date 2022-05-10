@@ -3,18 +3,19 @@ package database
 import (
 	"bufio"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // State 表示状态机的当前状态, 用户余额以及交易列表
 type State struct {
 	Balances  map[Account]uint
-	TxMemPool []Tx
+	TxMemPool []Tx // 交易池
 
-	dbFile *os.File
+	dbFile        *os.File
+	lastBlockHash HashCode // 最后一个区块的哈希值
 }
 
 func NewState(dbFilePath string) (*State, error) {
@@ -71,30 +72,29 @@ func NewStateFromDisk() (state *State, err error) {
 	//读取交易记录
 	txFilePath := filepath.Join(dbPath, "tx.db")
 	txFile, err := os.OpenFile(txFilePath, os.O_APPEND|os.O_RDWR, 0600)
-	//defer func(txFile *os.File) {
-	//	err := txFile.CloseDB()
-	//	if err != nil {
-	//		log.Println(err)
-	//	}
-	//}(txFile)
+
 	if err != nil {
 		return nil, err
 	}
 	scanner := bufio.NewScanner(txFile)
-	state = &State{balances, make([]Tx, 0), txFile}
+	state = &State{balances, make([]Tx, 0), txFile, HashCode{}}
+
 	for scanner.Scan() {
 		if err = scanner.Err(); err != nil {
 			return nil, err
 		}
-		var tx Tx
-		err = json.Unmarshal(scanner.Bytes(), &tx)
+
+		var blockFS BlockFS
+		err = json.Unmarshal(scanner.Bytes(), &blockFS)
 		if err != nil {
 			return nil, err
 		}
-		err = state.apply(tx)
+		err = state.applyBlock(blockFS.Value)
 		if err != nil {
 			return nil, err
 		}
+
+		state.lastBlockHash = blockFS.Key
 	}
 
 	return state, nil
@@ -109,59 +109,43 @@ func (s *State) AddTx(tx Tx) error {
 	return nil
 }
 
-// Persist : 持久化状态到磁盘
-func (s *State) Persist() error {
-
-	//logic:
-	//目的: 将s.txMemPool写到磁盘
-	//但是, 写磁盘的时候s.txMemPool有可能正在被Add进行append
-	//所以:
-	//1 ,  使用s.txMemPool的副本进行磁盘写入
-	//2 ,  写入成功, 则将其从s.txMemPool中删除
-
-	/*
-
-		          s.TxMemPool
-
-		         ┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐┌─┐  ◀─────adding (append)──────
-		    ─ ─ ▶└─┘└─┘└─┘└─┘└─┘└─┘└─┘└─┘
-		   │
-		             copied
-		   │     ┌─┐┌─┐┌─┐┌─┐┌─┐
-		         └─┘└─┘└─┘└─┘└─┘
-		   │      │
-		delete    │
-		   │      └────┐
-		               │
-		   │           ▼
-		      ┌────────────────┐
-		   └ ─│   write disk   │
-		      └────────────────┘
-
-	*/
-
-	memoryPool := make([]Tx, len(s.TxMemPool))
-	copy(memoryPool, s.TxMemPool)
-
-	for i := 0; i < len(memoryPool); i++ {
-		jsonBytes, err := json.Marshal(memoryPool[i])
-		if err != nil {
+func (s *State) applyBlock(block Block) error {
+	for _, tx := range block.Transactions {
+		if err := s.apply(tx); err != nil {
 			return err
 		}
-		jsonBytesWithNewLine := append(jsonBytes, '\n')
-
-		if s.dbFile == nil {
-			return errors.New("dbFile of state is nil")
-		}
-		_, err = s.dbFile.Write(jsonBytesWithNewLine)
-		if err != nil {
-			return err
-		}
-
-		//remove s.TxMemPool[0]
-		s.TxMemPool = s.TxMemPool[1:]
 	}
 	return nil
+}
+
+// Persist : 持久化状态到磁盘
+func (s *State) Persist() (HashCode, error) {
+
+	block := NewBlock(s.lastBlockHash, uint64(time.Now().Unix()), s.TxMemPool)
+	blockHash, err := block.Hash()
+	if err != nil {
+		return HashCode{}, err
+	}
+
+	blockFS := BlockFS{
+		blockHash,
+		*block,
+	}
+
+	blockFSJson, err := json.Marshal(blockFS)
+	if err != nil {
+		return HashCode{}, err
+	}
+
+	_, err = s.dbFile.Write(append(blockFSJson, '\n'))
+	if err != nil {
+		return HashCode{}, err
+	}
+	s.lastBlockHash = blockHash
+	s.TxMemPool = make([]Tx, 0)
+
+	return blockHash, nil
+
 }
 
 func (s *State) CloseDB() {

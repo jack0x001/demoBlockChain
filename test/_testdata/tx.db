@@ -1,5 +1,1 @@
-{"from":"zhouyh","to":"zhouyh","value":3,"data":""}
-{"from":"zhouyh","to":"zhouyh","value":700,"data":"reward"}
-{"from":"zhouyh","to":"babayaga","value":2000,"data":""}
-{"from":"zhouyh","to":"zhouyh","value":100,"data":"reward"}
-{"from":"babayaga","to":"zhouyh","value":1,"data":""}
+{"hash":"0f17d252f0858c85264535438e350b669da5e9c91c6950476a8891b27cbf973f","block":{"header":{"parent":"0000000000000000000000000000000000000000000000000000000000000000","time":1652169579},"transactions":[{"from":"zhouyh","to":"li","value":50,"data":""},{"from":"li","to":"zhouyh","value":20,"data":""}]}}

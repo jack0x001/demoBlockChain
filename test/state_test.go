@@ -64,44 +64,57 @@ func TestAddTx(t *testing.T) {
 
 }
 
-func TestPersist(t *testing.T) {
-	state, err := database.NewState("./_testdata/tx_test.db")
-	defer state.CloseDB()
+func TestPersistAndLoad(t *testing.T) {
+	t.Run("persist case", func(t *testing.T) {
+		t.Helper()
+		state, err := database.NewState("./_testdata/tx.db")
+		defer state.CloseDB()
 
-	state.Balances["zhouyh"] = 100
-	state.Balances["li"] = 200
+		state.Balances["zhouyh"] = 100
+		state.Balances["li"] = 200
 
-	_ = state.AddTx(database.Tx{
-		From:  "zhouyh",
-		To:    "li",
-		Value: 5,
-		Data:  "",
+		err = state.AddTx(database.Tx{
+			From:  "zhouyh",
+			To:    "li",
+			Value: 50,
+			Data:  "",
+		})
+		if err != nil {
+			t.Errorf("addTx failed: %s", err)
+		}
+
+		err = state.AddTx(database.Tx{
+			From:  "li",
+			To:    "zhouyh",
+			Value: 20,
+			Data:  "",
+		})
+		if err != nil {
+			t.Errorf("addTx failed: %s", err)
+		}
+
+		if len(state.TxMemPool) != 2 {
+			t.Errorf("add failed: the tx pool length should be 2, but got %d", len(state.TxMemPool))
+		}
+
+		_, err = state.Persist()
+		if err != nil {
+			t.Errorf("persist failed, %s", err.Error())
+		}
 	})
 
-	_ = state.AddTx(database.Tx{
-		From:  "li",
-		To:    "zhouyh",
-		Value: 20,
-		Data:  "",
+	t.Run("load case", func(t *testing.T) {
+		state, err := database.NewStateFromDisk()
+		if err != nil {
+			t.Errorf("NewStateFromDisk() error: %v", err)
+		}
+		if len(state.Balances) == 0 {
+			t.Errorf("NewStateFromDisk() error: %v", "state.Balances is empty")
+		}
 	})
-
-	if len(state.TxMemPool) != 2 {
-		t.Errorf("add failed: the tx pool length should be 2, but got %d", len(state.TxMemPool))
-	}
-
-	err = state.Persist()
-	if err != nil {
-		t.Errorf("persist failed, %s", err.Error())
-	}
 
 }
 
 func TestNewStateFromDisk(t *testing.T) {
-	state, err := database.NewStateFromDisk()
-	if err != nil {
-		t.Errorf("NewStateFromDisk() error: %v", err)
-	}
-	if len(state.Balances) == 0 {
-		t.Errorf("NewStateFromDisk() error: %v", "state.Balances is empty")
-	}
+
 }

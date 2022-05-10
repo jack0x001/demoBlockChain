@@ -48,17 +48,17 @@ func txAddCmd() *cobra.Command {
 			}
 
 			defer state.CloseDB()
-			
+
 			err = state.AddTx(tx)
 			if err != nil {
 				log.Fatal(err)
 			}
-			err = state.Persist()
+			snapshot, err := state.Persist()
 			if err != nil {
 				log.Fatal(err)
 			}
 
-			fmt.Println("tx added, from:", from, "to:", to, "value:", value, "data:", data)
+			fmt.Printf("tx added, from: %s, to: %s, value: %d, data: %s, snapshot: %x\n", from, to, value, data, snapshot)
 		},
 	}
 
