@@ -7,11 +7,14 @@ import (
 
 var version = "0.0.1"
 
-var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print the version number of cli",
-	Long:  "Print the version number of cli",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("cli version %s\n", version)
-	},
+func versionCmd() *cobra.Command {
+	cmd := cobra.Command{
+		Use:   "version",
+		Short: "Print the version number of cli",
+		Long:  "Print the version number of cli",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Printf("cli version %s\n", version)
+		}}
+	
+	return &cmd
 }

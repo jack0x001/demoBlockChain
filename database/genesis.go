@@ -3,6 +3,7 @@ package database
 import (
 	"encoding/json"
 	"io/ioutil"
+	"os"
 )
 
 type genesis struct {
@@ -21,4 +22,16 @@ func loadGenesis(path string) (genesis, error) {
 		return genesis{}, err
 	}
 	return g, nil
+}
+
+func writeGenesis(path string) error {
+	genesisJson := `{
+  "genesis_time": "2019-03-18T00:00:00.000000000Z",
+  "chain_id": "the-demo-blockchain-ledger",
+  "balances": {
+    "zhouyh": 1000000
+  }
+}`
+
+	return os.WriteFile(path, []byte(genesisJson), 0644)
 }

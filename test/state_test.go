@@ -67,7 +67,7 @@ func TestAddTx(t *testing.T) {
 func TestPersistAndLoad(t *testing.T) {
 	t.Run("persist case", func(t *testing.T) {
 		t.Helper()
-		state, err := database.NewState("./_testdata/tx.db")
+		state, err := database.NewState(database.GetBlockFilePath("./_testdata"))
 		defer state.CloseDB()
 
 		state.Balances["zhouyh"] = 100
@@ -105,7 +105,7 @@ func TestPersistAndLoad(t *testing.T) {
 
 	t.Run("load case", func(t *testing.T) {
 		t.Helper()
-		state, err := database.NewStateFromDisk()
+		state, err := database.NewStateFromDisk("./_testdata")
 		if err != nil {
 			t.Errorf("NewStateFromDisk() error: %v", err)
 		}

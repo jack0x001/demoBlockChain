@@ -1,1 +1,0 @@
-{"hash":"973d23596d8c15c9e16d9416f024b3d26521959d3fca64632d37b387cf44757d","block":{"header":{"parent":"0000000000000000000000000000000000000000000000000000000000000000","time":1652168663},"transactions":[{"from":"andrej","to":"babayaga","value":50,"data":""},{"from":"babayaga","to":"andrej","value":20,"data":""}]}}

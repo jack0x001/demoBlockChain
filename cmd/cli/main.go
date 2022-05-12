@@ -12,6 +12,13 @@ func prettyPrint(i interface{}) string {
 	return string(s)
 }
 
+//为命令添加必须的 默认参数
+func addDefaultRequiredFlags(cmd *cobra.Command) {
+	cmd.Flags().String("datadir", "", "Absolute path to the node data dir where the DB will/is stored")
+	_ = cmd.MarkFlagRequired("datadir")
+
+}
+
 func main() {
 	var rootCmd = &cobra.Command{
 		Use:   "cli",
@@ -24,10 +31,9 @@ func main() {
 		},
 	}
 
-	rootCmd.AddCommand(versionCmd)
-	rootCmd.AddCommand(statusCmd)
+	rootCmd.AddCommand(versionCmd())
+	rootCmd.AddCommand(statusCmd())
 	rootCmd.AddCommand(balancesCmd())
-	rootCmd.AddCommand(txCmd())
 
 	err := rootCmd.Execute()
 	if err != nil {

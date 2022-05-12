@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"time"
 )
 
@@ -54,13 +53,15 @@ func (s *State) apply(tx Tx) error {
 }
 
 // NewStateFromDisk 从磁盘读取并生成新的状态, 用于恢复状态机
-func NewStateFromDisk() (state *State, err error) {
+func NewStateFromDisk(dataDir string) (state *State, err error) {
 
-	// get environment variable of database path
-	dbPath := os.Getenv("DATABASE_PATH")
+	err = initDataDirIfNotExists(dataDir)
+	if err != nil {
+		return nil, err
+	}
+
 	//读取创世文件
-	genesisFilePath := filepath.Join(dbPath, "genesis.json")
-	genesis, err := loadGenesis(genesisFilePath)
+	genesis, err := loadGenesis(GetGenesisFilePath(dataDir))
 	if err != nil {
 		return nil, err
 	}
@@ -70,14 +71,14 @@ func NewStateFromDisk() (state *State, err error) {
 	}
 
 	//读取交易记录
-	txFilePath := filepath.Join(dbPath, "tx.db")
-	txFile, err := os.OpenFile(txFilePath, os.O_APPEND|os.O_RDWR, 0600)
+	blockFilePath := GetBlockFilePath(dataDir)
+	blockFile, err := os.OpenFile(blockFilePath, os.O_APPEND|os.O_RDWR, 0600)
 
 	if err != nil {
 		return nil, err
 	}
-	scanner := bufio.NewScanner(txFile)
-	state = &State{balances, make([]Tx, 0), txFile, HashCode{}}
+	scanner := bufio.NewScanner(blockFile)
+	state = &State{balances, make([]Tx, 0), blockFile, HashCode{}}
 
 	for scanner.Scan() {
 		if err = scanner.Err(); err != nil {

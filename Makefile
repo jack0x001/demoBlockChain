@@ -1,4 +1,4 @@
-.PHONY : all cli test
+.PHONY : all cli test run
 
 all: cli
 
@@ -7,3 +7,7 @@ cli:
 
 test:
 	go test -v  ./test/
+
+run:
+	./bin/demoChainCLI status --datadir=./database
+	./bin/demoChainCLI balances list --datadir=./database

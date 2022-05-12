@@ -26,7 +26,7 @@ type BlockHeader struct {
 
 type Block struct {
 	Header       BlockHeader `json:"header"`
-	Transactions []Tx        `json:"transactions"`
+	Transactions []Tx        `json:"payload"`
 }
 
 // Hash returns the HashCode of the Block

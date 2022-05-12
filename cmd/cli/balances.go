@@ -7,21 +7,30 @@ import (
 	"log"
 )
 
-var balancesListCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List balances",
-	Long:  "List balances",
-	Run: func(cmd *cobra.Command, args []string) {
-		state, err := database.NewStateFromDisk()
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer state.CloseDB()
+func balancesListCmd() *cobra.Command {
+	cmd := cobra.Command{
+		Use:   "list",
+		Short: "List balances",
+		Long:  "List balances",
+		Run: func(cmd *cobra.Command, args []string) {
+			dataDir, err := cmd.Flags().GetString("datadir")
+			if err != nil {
+				log.Fatal(err)
+			}
+			state, err := database.NewStateFromDisk(dataDir)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer state.CloseDB()
 
-		for account, balance := range state.Balances {
-			fmt.Printf("%s: %d\n", account, balance)
-		}
-	},
+			for account, balance := range state.Balances {
+				fmt.Printf("%s: %d\n", account, balance)
+			}
+		},
+	}
+
+	addDefaultRequiredFlags(&cmd)
+	return &cmd
 }
 
 func balancesCmd() *cobra.Command {
@@ -36,7 +45,8 @@ func balancesCmd() *cobra.Command {
 			// 上面的PreRunE 会纠正拼写错误
 		},
 	}
-	//添加子命令
-	balanceCmd.AddCommand(balancesListCmd)
+
+	//子命令
+	balanceCmd.AddCommand(balancesListCmd())
 	return balanceCmd
 }
