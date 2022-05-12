@@ -14,7 +14,7 @@ type State struct {
 	TxMemPool []Tx // 交易池
 
 	dbFile        *os.File
-	lastBlockHash HashCode // 最后一个区块的哈希值
+	LastBlockHash HashCode // 最后一个区块的哈希值
 }
 
 func NewState(dbFilePath string) (*State, error) {
@@ -95,7 +95,7 @@ func NewStateFromDisk(dataDir string) (state *State, err error) {
 			return nil, err
 		}
 
-		state.lastBlockHash = blockFS.Key
+		state.LastBlockHash = blockFS.Key
 	}
 
 	return state, nil
@@ -122,7 +122,7 @@ func (s *State) applyBlock(block Block) error {
 // Persist : 持久化状态到磁盘
 func (s *State) Persist() (HashCode, error) {
 
-	block := NewBlock(s.lastBlockHash, uint64(time.Now().Unix()), s.TxMemPool)
+	block := NewBlock(s.LastBlockHash, uint64(time.Now().Unix()), s.TxMemPool)
 	blockHash, err := block.Hash()
 	if err != nil {
 		return HashCode{}, err
@@ -142,7 +142,7 @@ func (s *State) Persist() (HashCode, error) {
 	if err != nil {
 		return HashCode{}, err
 	}
-	s.lastBlockHash = blockHash
+	s.LastBlockHash = blockHash
 	s.TxMemPool = make([]Tx, 0)
 
 	return blockHash, nil
