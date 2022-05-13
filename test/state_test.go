@@ -2,23 +2,8 @@ package test
 
 import (
 	"demoBlockChain/database"
-	"os"
 	"testing"
 )
-
-func setEnv() bool {
-	err := os.Setenv("DATABASE_PATH", "./_testdata")
-	if err != nil {
-		return false
-	}
-	return true
-}
-
-func init() {
-	if !setEnv() {
-		panic("set env failed")
-	}
-}
 
 func TestAddTx(t *testing.T) {
 	state, _ := database.NewState("")

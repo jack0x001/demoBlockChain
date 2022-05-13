@@ -1,1 +1,0 @@
-{"hash":"10ebdfbfbe72582b055ce5a720c399b7f35502900f13b738363500054168a25b","block":{"header":{"parent":"0000000000000000000000000000000000000000000000000000000000000000","time":1652256874},"payload":[{"from":"zhouyh","to":"li","value":50,"data":""},{"from":"li","to":"zhouyh","value":20,"data":""}]}}

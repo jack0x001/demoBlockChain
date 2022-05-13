@@ -9,5 +9,4 @@ test:
 	go test -v  ./test/
 
 run:
-	./bin/demoChainCLI status --datadir=./database
-	./bin/demoChainCLI balances list --datadir=./database
+	./bin/demoChainCLI run --datadir=./test/_testdata/

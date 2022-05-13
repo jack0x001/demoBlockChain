@@ -15,6 +15,7 @@ type State struct {
 
 	dbFile        *os.File
 	LastBlockHash HashCode // 最后一个区块的哈希值
+	Blocks        []BlockFS
 }
 
 func NewState(dbFilePath string) (*State, error) {
@@ -78,7 +79,7 @@ func NewStateFromDisk(dataDir string) (state *State, err error) {
 		return nil, err
 	}
 	scanner := bufio.NewScanner(blockFile)
-	state = &State{balances, make([]Tx, 0), blockFile, HashCode{}}
+	state = &State{balances, make([]Tx, 0), blockFile, HashCode{}, make([]BlockFS, 0)}
 
 	for scanner.Scan() {
 		if err = scanner.Err(); err != nil {
@@ -90,7 +91,7 @@ func NewStateFromDisk(dataDir string) (state *State, err error) {
 		if err != nil {
 			return nil, err
 		}
-		err = state.applyBlock(blockFS.Value)
+		err = state.applyBlock(blockFS)
 		if err != nil {
 			return nil, err
 		}
@@ -110,12 +111,14 @@ func (s *State) AddTx(tx Tx) error {
 	return nil
 }
 
-func (s *State) applyBlock(block Block) error {
-	for _, tx := range block.Transactions {
+func (s *State) applyBlock(block BlockFS) error {
+	for _, tx := range block.Value.Transactions {
 		if err := s.apply(tx); err != nil {
 			return err
 		}
 	}
+
+	s.Blocks = append(s.Blocks, block)
 	return nil
 }
 

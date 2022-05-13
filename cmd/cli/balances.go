@@ -13,7 +13,7 @@ func balancesListCmd() *cobra.Command {
 		Short: "List balances",
 		Long:  "List balances",
 		Run: func(cmd *cobra.Command, args []string) {
-			dataDir, err := cmd.Flags().GetString("datadir")
+			dataDir, err := cmd.Flags().GetString(flagDataDir)
 			if err != nil {
 				log.Fatal(err)
 			}

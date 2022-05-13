@@ -12,7 +12,7 @@ func statusCmd() *cobra.Command {
 		Short: "Show the status of the chain",
 		Long:  "Show the status of the chain",
 		Run: func(cmd *cobra.Command, args []string) {
-			dataDir, err := cmd.Flags().GetString("datadir")
+			dataDir, err := cmd.Flags().GetString(flagDataDir)
 			if err != nil {
 				return
 			}

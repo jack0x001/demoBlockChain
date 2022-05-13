@@ -7,6 +7,10 @@ import (
 	"log"
 )
 
+const (
+	flagDataDir = "datadir"
+)
+
 func prettyPrint(i interface{}) string {
 	s, _ := json.MarshalIndent(i, "", "  ")
 	return string(s)
@@ -14,8 +18,8 @@ func prettyPrint(i interface{}) string {
 
 //为命令添加必须的 默认参数
 func addDefaultRequiredFlags(cmd *cobra.Command) {
-	cmd.Flags().String("datadir", "", "Absolute path to the node data dir where the DB will/is stored")
-	_ = cmd.MarkFlagRequired("datadir")
+	cmd.Flags().String(flagDataDir, "", "Absolute path to the node data dir where the DB will/is stored")
+	_ = cmd.MarkFlagRequired(flagDataDir)
 
 }
 
@@ -34,6 +38,7 @@ func main() {
 	rootCmd.AddCommand(versionCmd())
 	rootCmd.AddCommand(statusCmd())
 	rootCmd.AddCommand(balancesCmd())
+	rootCmd.AddCommand(runCmd())
 
 	err := rootCmd.Execute()
 	if err != nil {
