@@ -8,5 +8,5 @@ cli:
 test:
 	go test -v  ./test/
 
-run:
+run: cli
 	./bin/demoChainCLI run --datadir=./test/_testdata/

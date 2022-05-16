@@ -1,5 +1,5 @@
 {
-  "genesis_time": "2019-03-18T00:00:00.000000000Z",
+  "genesis_time": "2022-05-12T00:00:00.000000000Z",
   "chain_id": "the-demo-blockchain-ledger",
   "balances": {
     "zhouyh": 1000000

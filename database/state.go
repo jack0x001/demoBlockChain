@@ -10,12 +10,12 @@ import (
 
 // State 表示状态机的当前状态, 用户余额以及交易列表
 type State struct {
-	Balances  map[Account]uint
-	TxMemPool []Tx // 交易池
-
+	Balances      map[Account]uint
+	TxMemPool     []Tx // 交易池
 	dbFile        *os.File
 	LastBlockHash HashCode // 最后一个区块的哈希值
-	Blocks        []BlockFS
+	LatestBlock   Block
+	Blocks        []BlockFS // 区块列表
 }
 
 func NewState(dbFilePath string) (*State, error) {
@@ -39,7 +39,7 @@ func NewState(dbFilePath string) (*State, error) {
 
 // 验证交易, 如果验证通过, 则将使交易生效
 func (s *State) apply(tx Tx) error {
-	if tx.IsReward() {
+	if tx.IsAirDrop() {
 		s.Balances[tx.To] += tx.Value
 		return nil
 	}
@@ -79,7 +79,7 @@ func NewStateFromDisk(dataDir string) (state *State, err error) {
 		return nil, err
 	}
 	scanner := bufio.NewScanner(blockFile)
-	state = &State{balances, make([]Tx, 0), blockFile, HashCode{}, make([]BlockFS, 0)}
+	state = &State{balances, make([]Tx, 0), blockFile, HashCode{}, Block{}, make([]BlockFS, 0)}
 
 	for scanner.Scan() {
 		if err = scanner.Err(); err != nil {
@@ -97,6 +97,7 @@ func NewStateFromDisk(dataDir string) (state *State, err error) {
 		}
 
 		state.LastBlockHash = blockFS.Key
+		state.LatestBlock = blockFS.Value
 	}
 
 	return state, nil
@@ -125,7 +126,7 @@ func (s *State) applyBlock(block BlockFS) error {
 // Persist : 持久化状态到磁盘
 func (s *State) Persist() (HashCode, error) {
 
-	block := NewBlock(s.LastBlockHash, uint64(time.Now().Unix()), s.TxMemPool)
+	block := NewBlock(s.LastBlockHash, uint64(time.Now().Unix()), s.LatestBlock.Header.Height+1, s.TxMemPool)
 	blockHash, err := block.Hash()
 	if err != nil {
 		return HashCode{}, err

@@ -21,6 +21,7 @@ func (h *HashCode) UnmarshalText(data []byte) error {
 
 type BlockHeader struct {
 	Parent HashCode `json:"parent"`
+	Height uint64   `json:"height"`
 	Time   uint64   `json:"time"`
 }
 
@@ -39,10 +40,11 @@ func (b *Block) Hash() (HashCode, error) {
 	return sha256.Sum256(j), nil
 }
 
-func NewBlock(parent HashCode, time uint64, transactions []Tx) *Block {
+func NewBlock(parent HashCode, time uint64, height uint64, transactions []Tx) *Block {
 	return &Block{
 		Header: BlockHeader{
 			Parent: parent,
+			Height: height,
 			Time:   time,
 		},
 		Transactions: transactions,

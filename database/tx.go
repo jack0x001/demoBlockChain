@@ -2,16 +2,12 @@ package database
 
 type Account string
 
-func NewAccount(name string) Account {
-	return Account(name)
-}
-
 // Tx 表示一次交易.
 type Tx struct {
 	From  Account `json:"from"`
 	To    Account `json:"to"`
 	Value uint    `json:"value"`
-	Data  string  `json:"data"`
+	Data  string  `json:"data,omitempty"`
 }
 
 // NewTx 新生成一个交易.
@@ -24,6 +20,6 @@ func NewTx(from Account, to Account, value uint, data string) Tx {
 	}
 }
 
-func (t Tx) IsReward() bool {
-	return t.Data == "reward"
+func (t Tx) IsAirDrop() bool {
+	return t.Data == "airdrop"
 }

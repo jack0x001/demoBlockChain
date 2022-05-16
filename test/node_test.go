@@ -17,7 +17,14 @@ const url = "http://localhost:" + node.Port
 
 func init() {
 	go func() {
-		err := node.Run("./_testdata")
+		//check if the node is running
+		_, err := http.Get(url)
+		if err == nil {
+			log.Fatal("node is running")
+		}
+
+		//start the node
+		err = node.Run("./_testdata")
 		if err != nil {
 			log.Fatal("ini node test, error: ", err)
 		}
@@ -54,8 +61,11 @@ func TestRun(t *testing.T) {
 }
 
 func TestPostTxAdd(t *testing.T) {
-	tx := database.NewTx("zhouyh", "li", 1, "")
-	j, err := json.Marshal(tx)
+	tx1 := database.NewTx("zhouyh", "li", 10, "")
+	tx2 := database.NewTx("li", "zhouyh", 2, "")
+
+	txList := []database.Tx{tx1, tx2}
+	j, err := json.Marshal(txList)
 	if err != nil {
 		t.Error(err)
 	}

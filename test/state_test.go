@@ -46,57 +46,38 @@ func TestAddTx(t *testing.T) {
 			t.Errorf("invalid case failed, the tx should be failed")
 		}
 	})
-
 }
 
 func TestPersistAndLoad(t *testing.T) {
-	t.Run("persist case", func(t *testing.T) {
-		t.Helper()
-		state, err := database.NewState(database.GetBlockFilePath("./_testdata"))
-		defer state.CloseDB()
+	state, err := database.NewStateFromDisk("./_testdata")
+	if err != nil {
+		t.Errorf("new state failed: %s", err)
+	}
+	defer state.CloseDB()
 
-		state.Balances["zhouyh"] = 100
-		state.Balances["li"] = 200
+	oldHeight := state.LatestBlock.Header.Height
+	tx := database.Tx{
+		From:  "zhou",
+		To:    "li",
+		Value: 500,
+		Data:  "",
+	}
+	err = state.AddTx(tx)
+	if err == nil {
+		t.Errorf("invalid case failed, the tx should be failed")
+	}
 
-		err = state.AddTx(database.Tx{
-			From:  "zhouyh",
-			To:    "li",
-			Value: 50,
-			Data:  "",
-		})
-		if err != nil {
-			t.Errorf("addTx failed: %s", err)
-		}
+	_, err = state.Persist()
+	if err != nil {
+		t.Errorf("persist failed, %s", err.Error())
+	}
 
-		err = state.AddTx(database.Tx{
-			From:  "li",
-			To:    "zhouyh",
-			Value: 20,
-			Data:  "",
-		})
-		if err != nil {
-			t.Errorf("addTx failed: %s", err)
-		}
+	state, err = database.NewStateFromDisk("./_testdata")
+	if err != nil {
+		t.Errorf("new state failed: %s", err)
+	}
 
-		if len(state.TxMemPool) != 2 {
-			t.Errorf("add failed: the tx pool length should be 2, but got %d", len(state.TxMemPool))
-		}
-
-		_, err = state.Persist()
-		if err != nil {
-			t.Errorf("persist failed, %s", err.Error())
-		}
-	})
-
-	t.Run("load case", func(t *testing.T) {
-		t.Helper()
-		state, err := database.NewStateFromDisk("./_testdata")
-		if err != nil {
-			t.Errorf("NewStateFromDisk() error: %v", err)
-		}
-		if len(state.Balances) == 0 {
-			t.Errorf("NewStateFromDisk() error: %v", "state.Balances is empty")
-		}
-	})
-
+	if state.LatestBlock.Header.Height != oldHeight+1 {
+		t.Errorf("block height, the height should be %d + 1 ", oldHeight)
+	}
 }
