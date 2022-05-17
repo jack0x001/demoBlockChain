@@ -12,7 +12,12 @@ func runCmd() *cobra.Command {
 		Short: "Run the blockchain node",
 		Run: func(cmd *cobra.Command, args []string) {
 			dataDir := cmd.Flag(flagDataDir).Value.String()
-			err := node.Run(dataDir)
+			ip := cmd.Flag(flagIP).Value.String()
+			port := cmd.Flag(flagPort).Value.String()
+
+			n := node.NewNode(dataDir, ip, port, *node.BootNode)
+
+			err := n.Run()
 			if err != nil {
 				log.Fatal("启动节点失败: ", err)
 			}

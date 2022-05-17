@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-const url = "http://localhost:" + node.Port
+const url = "http://localhost:" + node.DefaultPort
 
 func init() {
 	go func() {
@@ -24,7 +24,9 @@ func init() {
 		}
 
 		//start the node
-		err = node.Run("./_testdata")
+		boot := node.NewPeerNode("127.0.0.1", node.DefaultPort, true, true)
+		n := node.NewNode("./_testdata", "127.0.0.1", node.DefaultPort, *boot)
+		err = n.Run()
 		if err != nil {
 			log.Fatal("ini node test, error: ", err)
 		}
@@ -51,7 +53,7 @@ func getBodyContent(resp *http.Response, t *testing.T) []byte {
 
 func TestRun(t *testing.T) {
 
-	resp, err := http.Get(url)
+	resp, err := http.Get(url + node.EndPointGetStatus)
 	if err != nil {
 		t.Error(err)
 	}

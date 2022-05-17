@@ -9,6 +9,8 @@ import (
 
 const (
 	flagDataDir = "datadir"
+	flagIP      = "ip"
+	flagPort    = "port"
 )
 
 func prettyPrint(i interface{}) string {
@@ -19,7 +21,11 @@ func prettyPrint(i interface{}) string {
 //为命令添加必须的 默认参数
 func addDefaultRequiredFlags(cmd *cobra.Command) {
 	cmd.Flags().String(flagDataDir, "", "Absolute path to the node data dir where the DB will/is stored")
+	cmd.Flags().String(flagIP, "", "ip address of node")
+	cmd.Flags().String(flagPort, "", "port number of node")
 	_ = cmd.MarkFlagRequired(flagDataDir)
+	_ = cmd.MarkFlagRequired(flagIP)
+	_ = cmd.MarkFlagRequired(flagPort)
 
 }
 
@@ -34,10 +40,6 @@ func main() {
 			//do nothing
 		},
 	}
-
-	rootCmd.AddCommand(versionCmd())
-	rootCmd.AddCommand(statusCmd())
-	rootCmd.AddCommand(balancesCmd())
 	rootCmd.AddCommand(runCmd())
 
 	err := rootCmd.Execute()
